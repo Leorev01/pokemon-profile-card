@@ -191,7 +191,7 @@ app.get('/api/test-card', (req, res) => {
               stroke="#ffd600" stroke-width="3"/>
         <rect x="3" y="3" rx="19" width="184" height="42" fill="none" stroke="#fffde7" stroke-width="2"/>
         <text x="95" y="32" font-size="20" font-weight="bold" fill="#ffd600" letter-spacing="1" text-anchor="middle" alignment-baseline="middle">
-          Followers: ${user.followers}
+          Followers: ${mockUser.followers}
         </text>
       </g>
       <g transform="translate(420,80)">
@@ -242,7 +242,7 @@ app.get('/api/test-card', (req, res) => {
     
     <!-- Recent Activity -->
     <text x="32" y="560" font-size="18">
-      <tspan font-weight="bold">Recent Activity:</tspan> PushEvent in testuser/repo (1/1/2024)
+      <tspan font-weight="bold">Recent Activity:</tspan> PushEvent in a-very-long-repository-name-that-would-cause-overflow (1/1/2024)
     </text>
   </g>
 </svg>`;
@@ -321,11 +321,17 @@ app.get('/api/card', async (req, res) => {
     if (expScore > 800)  level = 'Senior Dev';
     if (expScore > 2000) level = 'Lead Dev';
 
-    // 5) Recent activity
+    // 5) Recent activity with text truncation to prevent overflow
     const latest = Array.isArray(events) && events[0];
-    const activity = latest
+    let activity = latest
       ? `${latest.type.replace('Event','')} in ${latest.repo.name} (${new Date(latest.created_at).toLocaleDateString()})`
       : 'No recent public activity';
+    
+    // Truncate activity text if too long (approximately 40 characters to fit within card)
+    const maxActivityLength = 40;
+    if (activity.length > maxActivityLength) {
+      activity = activity.substring(0, maxActivityLength - 3) + '...';
+    }
 
     // 6) Gradient stops
     const [s0, s1] = typeData.bgStops;
