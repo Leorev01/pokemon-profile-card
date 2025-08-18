@@ -189,11 +189,17 @@ export default async function handler(req, res) {
     if (expScore > 800)  level = 'Senior Dev';
     if (expScore > 2000) level = 'Lead Dev';
 
-    // Recent activity
+    // Recent activity with text truncation to prevent overflow
     const latest = Array.isArray(events) && events[0];
-    const activity = latest
+    let activity = latest
       ? `${latest.type.replace('Event','')} in ${latest.repo.name} (${new Date(latest.created_at).toLocaleDateString()})`
       : 'No recent public activity';
+    
+    // Truncate activity text if too long (approximately 40 characters to fit within card)
+    const maxActivityLength = 40;
+    if (activity.length > maxActivityLength) {
+      activity = activity.substring(0, maxActivityLength - 3) + '...';
+    }
 
     const shadowColor = typeData.shadowColor;
     const iconSvg = typeData.iconSvg;
